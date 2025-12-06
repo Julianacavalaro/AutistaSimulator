@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +7,9 @@ public class MovimentController : MonoBehaviour
     public float speed = 5f;
     private Rigidbody2D rd;
     private Vector2 moviment;
+    private Vector2 lastMoviment = new Vector2(0, -1);
     private Animator animator;
+    private bool isMoving = false;
 
     void Awake()
         {
@@ -33,6 +35,12 @@ public class MovimentController : MonoBehaviour
     {
         Debug.Log("START do objeto: " + gameObject.name +
                   " | InstanceID: " + GetInstanceID());
+ 
+            // garante que o Animator já comece na direção certa
+            animator.SetFloat("Horizontal", 0f);
+            animator.SetFloat("Vertical", -1f);  // baixo
+            animator.SetBool("isMoving", false);
+        
     }
 
     // Update is called once per frame
@@ -44,6 +52,20 @@ public class MovimentController : MonoBehaviour
         moviment.y = Input.GetAxis("Vertical");
 
         Debug.Log("Horizontal: " + moviment.x + " | Vertical: " + moviment.y);
+
+        if (moviment.x != 0 || moviment.y != 0)
+        {
+
+            isMoving = true;
+            lastMoviment = moviment;
+
+        }
+        else
+        {
+          
+            isMoving = false;
+        }
+
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
 
@@ -69,8 +91,11 @@ public class MovimentController : MonoBehaviour
     {
         Debug.Log("LATE UPDATE do objeto: " + gameObject.name +
                   " | InstanceID: " + GetInstanceID());
-        animator.SetFloat("Horizontal", moviment.x);
-        animator.SetFloat("Vertical", moviment.y);
+
+        Vector2 animatorMoviment = isMoving ? moviment : lastMoviment;
+        animator.SetFloat("Horizontal", animatorMoviment.x);
+        animator.SetFloat("Vertical", animatorMoviment.y);
+        animator.SetBool("isMoving", isMoving);
       //  animator.SetFloat("Speed", moviment.sqrMagnitude);
     }
 }
