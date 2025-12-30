@@ -1,0 +1,80 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class MovimentController : MonoBehaviour
+{
+    public float speed = 5f;
+    private Rigidbody2D rd;
+    private Vector2 moviment;
+    private Animator animator;
+    private bool isMoving = false;
+    public float jumpForce = 5f; // deixei público pra ajustar no Inspector, se quiser
+
+    private bool isJumping = false; // evita múltiplos pulos no ar
+
+    void Awake()
+    {
+        rd = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+    }
+
+    void Start()
+    {
+        // garante que o Animator comece olhando pra baixo e parado
+        animator.SetFloat("Horizontal", 0f);
+        animator.SetFloat("Vertical", -1f);
+        animator.SetBool("isMoving", false);
+    }
+
+    void Update()
+    {
+        moviment.x = Input.GetAxisRaw("Horizontal");
+        moviment.y = Input.GetAxisRaw("Vertical");
+
+        isMoving = (moviment.x != 0 || moviment.y != 0);
+
+        // correr segurando SHIFT
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+            speed *= 2;
+
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+            speed /= 2;
+
+        // pular com espaço, só se não estiver no ar
+        if (Input.GetKeyDown(KeyCode.Space) && !isJumping)
+        {
+            Jump();
+        }
+    }
+
+    private void Jump()
+    {
+        isJumping = true;
+        rd.velocity = new Vector2(rd.velocity.x, jumpForce);
+
+        if (animator != null)
+        {
+            // ativa o trigger "jump" (precisa existir como Trigger no Animator)
+            animator.SetTrigger("jump");
+        }
+
+        Debug.Log("Pulando!");
+    }
+
+    void FixedUpdate()
+    {
+        rd.velocity = new Vector2(moviment.x * speed, rd.velocity.y);
+    }
+
+    void LateUpdate()
+    {
+        animator.SetBool("isMoving", isMoving);
+
+        if (isMoving)
+        {
+            animator.SetFloat("Horizontal", moviment.x);
+            animator.SetFloat("Vertical", moviment.y);
+        }
+    }
+}
